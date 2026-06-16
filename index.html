@@ -1005,8 +1005,10 @@ async function fetchSheetData(tabName) {
     throw new Error(data.errors?.[0]?.message || 'Google Sheets query error');
   }
 
-  // Convert gviz table format to array of objects
-  const cols = data.table.cols.map(c => c.label || c.id);
+  // Convert gviz table format to array of objects.
+  // Trim header labels: the backend writes some headers with a trailing space
+  // (e.g. "timestamp "), which would otherwise break every column lookup.
+  const cols = data.table.cols.map(c => (c.label || c.id || '').trim());
   const rows = (data.table.rows || []).map(row => {
     const obj = {};
     row.c.forEach((cell, i) => {
@@ -1383,6 +1385,9 @@ function renderRecordings(recordings, filter = '') {
     const computer = r['computer_name'] || r['Computer'] || r['computer'] || r['Computer Name'] || '';
     const filename = r['filename'] || r['Filename'] || r['file_name'] || r['File Name'] || r['name'] || '';
     const size = r['size'] || r['Size'] || r['file_size'] || r['File Size'] || '';
+    // The backend reports size in megabytes (column "size_mb"); show it directly.
+    const sizeMbRaw = r['size_mb'] != null ? Number(r['size_mb']) : NaN;
+    const sizeDisplay = !isNaN(sizeMbRaw) ? sizeMbRaw.toFixed(1) + ' MB' : formatSize(size);
     const driveId = r['drive_id'] || r['Drive ID'] || r['file_id'] || r['File ID'] || r['drive_file_id'] || '';
     const driveLink = r['drive_link'] || r['Drive Link'] || r['link'] || r['Link'] || r['url'] || r['URL'] || '';
 
@@ -1395,7 +1400,7 @@ function renderRecordings(recordings, filter = '') {
         <td>${esc(employee)}</td>
         <td class="mono">${esc(computer)}</td>
         <td class="mono" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(filename)}">${esc(filename)}</td>
-        <td><span class="size-badge">${esc(formatSize(size))}</span></td>
+        <td><span class="size-badge">${esc(sizeDisplay)}</span></td>
         <td>
           <div class="actions-cell">
             ${viewUrl ? `<a class="btn btn-outline btn-sm" href="${esc(viewUrl)}" target="_blank" rel="noopener">Drive</a>` : ''}
