@@ -1333,6 +1333,7 @@ function renderMachines(machines) {
             : `<button class="btn btn-stop-outline btn-sm" onclick="confirmCommand('${esc(m._computer)}', '${esc(m._employee)}', 'stop')">&#9646;&#9646; Stop</button>`
           }
           <button class="btn btn-danger-outline btn-sm" onclick="confirmCommand('${esc(m._computer)}', '${esc(m._employee)}', 'restart')">Restart</button>
+          <button class="btn btn-outline btn-sm" onclick="confirmCommand('${esc(m._computer)}', '${esc(m._employee)}', 'record_test')" title="Capture a single 60-second clip now to verify the upload pipeline">Test 60s</button>
         </div>
       </td>
     </tr>
@@ -1430,7 +1431,8 @@ async function sendCommand(computer, command) {
     showToast('Apps Script URL not configured in dashboard settings.', 'error');
     return;
   }
-  const label = command === 'start' ? 'Starting' : command === 'stop' ? 'Pausing' : 'Restarting';
+  const label = command === 'start' ? 'Starting' : command === 'stop' ? 'Pausing'
+    : command === 'record_test' ? 'Requesting a 60s test clip from' : 'Restarting';
   showToast(`${label} ${computer}...`, 'info');
   try {
     await fetch(APPS_SCRIPT_URL, {
@@ -1439,8 +1441,10 @@ async function sendCommand(computer, command) {
       body: JSON.stringify({ computer_name: computer, command }),
       mode: 'no-cors',
     });
-    const doneLabel = command === 'start' ? 'Start' : command === 'stop' ? 'Stop' : 'Restart';
-    showToast(`${doneLabel} command sent to ${computer}. Takes ~30 seconds.`, 'success');
+    const doneLabel = command === 'start' ? 'Start' : command === 'stop' ? 'Stop'
+      : command === 'record_test' ? 'Test-clip' : 'Restart';
+    const eta = command === 'record_test' ? 'Clip should appear below in ~90 seconds.' : 'Takes ~30 seconds.';
+    showToast(`${doneLabel} command sent to ${computer}. ${eta}`, 'success');
   } catch (err) {
     showToast(`Command failed: ${err.message}`, 'error');
   }
@@ -1457,6 +1461,7 @@ const COMMAND_COPY = {
   start:   { title: 'Confirm Start',   verb: 'start recording on',     ok: '▶ Start',     okClass: 'btn-success-outline' },
   stop:    { title: 'Confirm Stop',    verb: 'pause recording on',     ok: '██ Stop', okClass: 'btn-stop-outline' },
   restart: { title: 'Confirm Restart', verb: 'restart the service on', ok: 'Restart',           okClass: 'btn-danger-outline' },
+  record_test: { title: 'Record Test Clip', verb: 'capture a 60-second test clip on', ok: 'Test 60s', okClass: 'btn-outline' },
 };
 
 function confirmCommand(computer, employee, command) {
