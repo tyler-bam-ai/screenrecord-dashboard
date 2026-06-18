@@ -929,9 +929,8 @@ tbody tr:hover td { background: rgba(51, 65, 85, 0.25); }
       </div>
     </div>
     <p style="color:var(--text-dim);font-size:13px;margin:-6px 0 14px;">
-      Every captured user action paired with a screenshot. Screenshots are
-      <strong>PHI-redacted</strong> (on-screen text blacked out) and typed text is
-      <strong>aliased</strong>; re-identification is restricted to authorized staff.
+      Every captured user action paired with the screen at that moment, tied to
+      the recording by file and in-video offset.
     </p>
     <div id="dom-wrap">
       <div id="dom-loading" style="padding: 20px;">
@@ -1541,7 +1540,7 @@ function renderDomEvents(events, filter = '') {
       ${thumb}
       <div class="dom-meta">
         <span class="dom-type ${cls}">${isClick ? 'click' : 'key'}</span>
-        <div class="dom-detail">${esc(e.detail_masked || '')}</div>
+        <div class="dom-detail">${esc(e.detail || '')}</div>
         <div class="dom-sub">${esc(e.computer_name || '')} &middot; ${esc(off)}</div>
       </div>
     </div>`;
@@ -1557,17 +1556,16 @@ function openDomEvent(idx) {
     ? `<img src="${e.thumb}" style="width:100%;border-radius:8px;border:1px solid var(--border,#262a35);" alt="redacted screenshot">`
     : '<p>No screenshot.</p>';
   document.getElementById('dom-modal-title').textContent =
-    (String(e.event_type || '').includes('click') ? 'Mouse click' : 'Keystroke') + ' · ' + (e.detail_masked || '');
+    (String(e.event_type || '').includes('click') ? 'Mouse click' : 'Keystroke') + ' · ' + (e.detail || '');
   document.getElementById('dom-modal-body').innerHTML = `
     ${img}
     <table style="width:100%;margin-top:14px;font-size:13px;">
-      <tr><td style="color:var(--text-dim);padding:4px 8px;">Action</td><td style="font-family:monospace;">${esc(e.detail_masked || '')}</td></tr>
+      <tr><td style="color:var(--text-dim);padding:4px 8px;">Action</td><td style="font-family:monospace;">${esc(e.detail || '')}</td></tr>
       <tr><td style="color:var(--text-dim);padding:4px 8px;">Video file</td><td style="font-family:monospace;">${esc(e.video_file || '')}</td></tr>
       <tr><td style="color:var(--text-dim);padding:4px 8px;">In-video offset</td><td>${esc(String(e.video_offset_sec || ''))} s</td></tr>
       <tr><td style="color:var(--text-dim);padding:4px 8px;">Timestamp (UTC)</td><td>${esc(e.ts_utc || '')}</td></tr>
       <tr><td style="color:var(--text-dim);padding:4px 8px;">Machine</td><td>${esc(e.computer_name || '')}</td></tr>
-    </table>
-    <p style="color:var(--text-dim);font-size:12px;margin-top:12px;">Screenshot is PHI-redacted; aliased values can only be re-identified by authorized staff.</p>`;
+    </table>`;
   document.getElementById('dom-modal').classList.add('active');
 }
 
