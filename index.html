@@ -974,6 +974,7 @@ tbody tr:hover td { background: rgba(51, 65, 85, 0.25); }
 .dom-type.key { background: rgba(120,200,140,.16); color: #84d49b; }
 .dom-detail { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--text, #e6e8ee); word-break: break-all; }
 .dom-sub { font-size: 11px; color: var(--text-dim, #8a90a0); margin-top: 5px; }
+.perm-warn { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 5px; font-size: 11px; font-weight: 600; font-family: -apple-system, sans-serif; background: rgba(240,160,60,.18); color: #f0a83c; white-space: nowrap; cursor: help; }
 </style>
 
 <!-- ============================================================
@@ -1331,6 +1332,7 @@ function renderMachines(machines) {
     const client = m['client_name'] || m['Client'] || m['client'] || m['Client Name'] || '';
     const segments = m['segments_uploaded'] || m['Segments'] || m['segments'] || m['Segments Uploaded'] || 0;
     const uptime = m['uptime_hours'] || m['Uptime'] || m['uptime'] || m['Uptime Hours'] || 0;
+    const permissions = (m['permissions'] || m['Permissions'] || 'ok').toString();
 
     const minsAgo = minutesSince(heartbeat);
     const statusClass = getStatusClass(minsAgo, status.toLowerCase());
@@ -1346,7 +1348,9 @@ function renderMachines(machines) {
       _minsAgo: minsAgo,
       _statusClass: statusClass,
       _statusLabel: statusLabel,
-      _heartbeat: heartbeat
+      _heartbeat: heartbeat,
+      _permissions: permissions,
+      _permsOk: !/^missing/i.test(permissions)
     };
   });
 
@@ -1381,7 +1385,7 @@ function renderMachines(machines) {
         </div>
       </td>
       <td>${esc(m._employee)}</td>
-      <td class="mono">${esc(m._computer)}</td>
+      <td class="mono">${esc(m._computer)}${m._permsOk ? '' : `<span class="perm-warn" title="${esc(m._permissions)} — grant in System Settings (or via MDM profile)">&#9888; ${esc(m._permissions.replace(/^MISSING:\s*/i,''))}</span>`}</td>
       <td class="client-cell" title="Click to set the clinic / client name" onclick="editClient('${esc(m._computer)}', '${esc(m._client)}')">${m._client ? esc(m._client) : '<span class="set-hint">+ set name</span>'}</td>
       <td>${esc(formatLastSeen(m._minsAgo))}</td>
       <td class="mono">${esc(m._segments)}</td>
